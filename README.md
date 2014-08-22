@@ -1,7 +1,7 @@
 Descrição
 =========
-  Código para agendamento de rele, baseado no DS1307
-  Tamanho total: 2.796 bytes
+  - Código para agendamento de rele, baseado no DS1307
+  - Tamanho total: 2.796 bytes
 
 Terceiros
 =========
