@@ -17,7 +17,7 @@
  * File: sketch.ino
  * 
  * Author: Bruno Pitteli Gonçalves http://bruno.pitteli.com.br
- * Partners: Prime Seven - Web Solutions - http://primeseven.com.br
+ * Partners: Agência General de Desenvolvimento Web - Web Solutions - http://www.ageneral.com.br
  * 
  * Repository: https://github.com/scorninpc/arduino-clock-rele
  */
@@ -41,7 +41,7 @@ byte _second, _minute, _hour, _day, _week_day, _month, _year;
  */
 byte binToDec(byte val)
 {
-  return ((val/16*10) + (val%16));
+	return ((val/16*10) + (val%16));
 }
 
 /**
@@ -53,7 +53,7 @@ void getDateDs1307()
 	Wire.beginTransmission(clockAddress);
 	Wire.write(byte(0x00));
 	Wire.endTransmission();
-	
+
 	// Move o ponteiro
 	Wire.requestFrom(clockAddress, 7);
 
@@ -72,11 +72,45 @@ void getDateDs1307()
  */
 void setup()
 {
+	// Espera 1s para iniciar, para facilitar o envio de novos códigos
+	delay(1000);
+
 	// Configura os pinos de saida
 	pinMode(RELE_PINOUT, OUTPUT);
+	pinMode(13, OUTPUT);
 	
 	// Inicia o wire
 	Wire.begin();
+
+	// Inicia a porta serial
+	Serial.begin(9600);
+
+	// Seta o pino 13 para indicar que está esperando comando
+	digitalWrite(13, HIGH);
+
+	// Fica por 5s verificando se a porta serial está conectada
+	Serial.setTimeout(5000);
+	String command = Serial.readString();
+	if(command.length() > 0) {
+		// Recupera a data e hora do RTC
+		getDateDs1307();
+		
+		Serial.print(_day);
+		Serial.print('/');
+		Serial.print(_month);
+		Serial.print('/');
+		Serial.print(_year);
+		Serial.print(' ');
+		Serial.print(_hour);
+		Serial.print(':');
+		Serial.print(_minute);
+		Serial.print(':');
+		Serial.println(_second);
+	}
+	else {
+		// Abaixa o pino, indicando termino do tempo para receber o comando de configuração
+		digitalWrite(13, LOW);
+	}
 }
 
 /**
@@ -87,7 +121,7 @@ void loop()
 	// Cria o horario formatado
 	getDateDs1307();
 	int formated_time = (_hour * 100) + _minute;
-	
+
 	// Verifica se está no intervalo configurado
 	if((formated_time >= ILUMINACAO_INICIO) && (formated_time < ILUMINACAO_FIM)) {
 		// Ativa o rele
@@ -97,7 +131,7 @@ void loop()
 		// Desliga o rele
 		digitalWrite(RELE_PINOUT, LOW);
 	}
-	
+
 	// Espera 1 segundo
 	delay(1000);
 }
