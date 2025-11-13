@@ -13,20 +13,20 @@
  * junto com este programa, se não, escreva para a Fundação do Software
  * Livre(FSF) Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  * 
- * 
  * File: sketch.ino
  * 
  * Author: Bruno Pitteli Gonçalves http://bruno.pitteli.com.br
- * Partners: Agência General de Desenvolvimento Web - Web Solutions - http://www.ageneral.com.br
+ * Partners: SiNCORE Digital - https://sincore.digital
  * 
  * Repository: https://github.com/scorninpc/arduino-clock-rele
  */
  
 // Adiciona a lib para comunicação I2C com o DS1307
 #include <Wire.h>
+#include <RTClib.h>
 
 // Configura o intervalo de horario de iluminação no formato Hi (8:30 = 830)
-#define ILUMINACAO_INICIO 830
+#define ILUMINACAO_INICIO 700
 #define ILUMINACAO_FIM 1730
 
 // Define o pino do rele
@@ -34,6 +34,7 @@
 
 // Configura o RTC
 int clockAddress = 0x68; 
+RTC_DS1307 RTC;
 byte _second, _minute, _hour, _day, _week_day, _month, _year;
 
 /**
@@ -81,6 +82,7 @@ void setup()
 	
 	// Inicia o wire
 	Wire.begin();
+	RTC.begin();
 
 	// Inicia a porta serial
 	Serial.begin(9600);
@@ -89,6 +91,7 @@ void setup()
 	digitalWrite(13, HIGH);
 
 	// Fica por 5s verificando se a porta serial está conectada
+	// envie qualquer caractere para o serial para receber o horario atual do RTC
 	Serial.setTimeout(5000);
 	String command = Serial.readString();
 	if(command.length() > 0) {
@@ -106,11 +109,14 @@ void setup()
 		Serial.print(_minute);
 		Serial.print(':');
 		Serial.println(_second);
+
+		// seta o horario 
+		// @todo adicionar comando para setar a hora via serial
+		//RTC.adjust(DateTime(2025, 11, 13, 19, 52, 0));
 	}
-	else {
-		// Abaixa o pino, indicando termino do tempo para receber o comando de configuração
-		digitalWrite(13, LOW);
-	}
+
+	// Abaixa o pino, indicando termino do tempo para receber o comando de configuração
+	digitalWrite(13, LOW);
 }
 
 /**
